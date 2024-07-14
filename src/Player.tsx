@@ -46,10 +46,7 @@ export const PlayerWrapper = () => {
 
     return () => {
       if (!player) return;
-      if (player.isPlaying) {
-        player.requestStop();
-        player.createFromSongUrl("");
-      }
+      player.dispose();
       setPlayer(undefined);
     };
   }, []);
@@ -72,7 +69,10 @@ const Lyric = ({
   const [lyric, setLyric] = useState<String>();
 
   useEffect(() => {
-    if (!player) return;
+    if (!player) {
+      setLyric(undefined);
+      return;
+    };
 
     const animateWord: RenderingUnitFunction = (now, unit) => {
       if (unit.contains(now)) {
@@ -113,7 +113,11 @@ const SongMap = ({
   const [valenceArousal, setValenceArousal] = useState<ValenceArousalValue>();
 
   useEffect(() => {
-    if (!player) return;
+    if (!player) {
+      setVocalAmplitude(undefined);
+      setValenceArousal(undefined);
+      return;
+    };
 
     const listener: PlayerListener = {
       onTimeUpdate: (position: number) => {
