@@ -2,7 +2,7 @@ import { css } from "goober";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Player } from "textalive-app-api";
-import type { IPlayerApp, PlayerListener, RenderingUnitFunction } from "textalive-app-api";
+import type { IPlayerApp, PlayerListener, RenderingUnitFunction, ValenceArousalValue } from "textalive-app-api";
 
 type rPlayer = Player | undefined;
 
@@ -29,6 +29,8 @@ export const PlayerWrapper = () => {
         token: import.meta.env.VITE_TextAlive_Token,
       },
       mediaElement: mediaRef.current,
+      valenceArousalEnabled: true,
+      vocalAmplitudeEnabled: true,
     });
 
     player.addListener({
@@ -57,6 +59,7 @@ export const PlayerWrapper = () => {
       {MediaDiv}
       {/* 以下にコード */}
       <Lyric player={player} />
+      <SongMap player={player} />
     </>
   );
 };
@@ -96,7 +99,41 @@ const Lyric = ({
   }, [player])
 
   return <>
-    <h1>歌詞表示デモ</h1>
+    <h1>歌詞表示</h1>
     <p>{lyric}</p>
+  </>;
+}
+
+const SongMap = ({
+  player
+}: {
+  player: rPlayer,
+}) => {
+  const [vocalAmplitude, setVocalAmplitude] = useState<Number>();
+  const [valenceArousal, setValenceArousal] = useState<ValenceArousalValue>();
+
+  useEffect(() => {
+    if (!player) return;
+
+    const listener: PlayerListener = {
+      onTimeUpdate: (position: number) => {
+        setVocalAmplitude(Math.round(player.getVocalAmplitude(position)));
+        setValenceArousal(player.getValenceArousal(position));
+      }
+    }
+
+    player.addListener(listener);
+    return () => {
+      player.removeListener(listener);
+    }
+  }, [player])
+
+  return <>
+    <h1>声量</h1>
+    <p>{vocalAmplitude?.toString()}</p>
+    <h1>覚醒度</h1>
+    <p>{valenceArousal?.a}</p>
+    <h1>感情値</h1>
+    <p>{valenceArousal?.v}</p>
   </>;
 }
